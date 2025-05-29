@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Comando Elevador de Carga</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo para o Elevador/elevador */
+        #elevadorVisual {
+            transition: bottom 1.5s ease-in-out; /* Duração da animação de movimento */
+        }
+        .btn-disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans p-2 sm:p-4">
+    <div class="container mx-auto max-w-4xl bg-white shadow-lg rounded-lg p-3 sm:p-6">
+        <h1 class="text-xl sm:text-2xl font-bold text-center text-gray-700 mb-4 sm:mb-6">Simulador de Comando Elevador de Carga</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 border rounded-lg bg-gray-50">
+            <div>
+                <h3 class="text-base sm:text-lg font-semibold mb-2 text-gray-600">Segurança</h3>
+                <button id="btnChaveGeral" class="w-full mb-2 p-2 rounded-md text-white text-sm sm:text-base">Chave Geral (Ligada)</button>
+                <button id="btnParadaEmergencia" class="w-full mb-2 p-2 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm sm:text-base">Parada de Emergência (Normal)</button>
+                <button id="btnReleSobrecarga" class="w-full p-2 rounded-md bg-yellow-500 hover:bg-yellow-600 text-white text-sm sm:text-base">Relé Sobrecarga (Normal)</button>
+            </div>
+            <div class="md:col-span-2">
+                <h3 class="text-base sm:text-lg font-semibold mb-2 text-gray-600">Status do Sistema</h3>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:text-sm">
+                    <p>K1 (Subida): <span id="statusK1" class="font-bold">DESLIGADO</span></p>
+                    <p>K2 (Descida): <span id="statusK2" class="font-bold">DESLIGADO</span></p>
+                    <p>Motor: <span id="statusMotor" class="font-bold">PARADO</span></p>
+                    <p>Posição: <span id="statusPosicao" class="font-bold">1º Andar</span></p>
+                    <p>Destino: <span id="statusDestino" class="font-bold">Nenhum</span></p>
+                    <p>Operação: <span id="statusOperacao" class="font-bold text-green-600">NORMAL</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
+            <div class="md:col-span-1 bg-gray-200 p-2 sm:p-4 rounded-lg relative h-60 sm:h-72 flex flex-col justify-between items-center">
+                <div class="text-center w-full font-semibold text-xs sm:text-sm">3º Andar</div>
+                <div class="text-center w-full font-semibold text-xs sm:text-sm">2º Andar</div>
+                <div class="text-center w-full font-semibold text-xs sm:text-sm">1º Andar</div>
+                <div id="elevadorVisual" class="absolute bg-blue-500 w-3/4 h-1/3 rounded flex justify-center items-center" style="bottom: 5%;">
+                    <span class="text-white text-xs sm:text-sm font-semibold">Elevador</span>
+                </div>
+                <div id="fc3Indicator" class="absolute top-1 right-1 w-2 h-2 sm:w-3 sm:h-3 bg-gray-400 rounded-full border border-gray-500" title="FC3"></div>
+                <div id="fc2Indicator" class="absolute top-1/2 right-1 w-2 h-2 sm:w-3 sm:h-3 bg-gray-400 rounded-full transform -translate-y-1/2 border border-gray-500" title="FC2"></div>
+                <div id="fc1Indicator" class="absolute bottom-1 right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full border border-gray-500" title="FC1 (Atuado)"></div>
+            </div>
+
+            <div class="md:col-span-3 grid grid-rows-1 md:grid-rows-3 gap-4">
+                <div class="p-3 sm:p-4 border rounded-lg bg-gray-50">
+                    <h4 class="font-semibold mb-2 text-gray-600 text-sm sm:text-base">3º Andar <span id="indicadorPosicaoPainel3" class="text-blue-600 font-normal"></span></h4>
+                    <button data-andar-origem="3" data-andar-destino="2" class="btnChamar p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md mr-2 text-xs sm:text-sm">Chamar para 2º</button>
+                    <button data-andar-origem="3" data-andar-destino="1" class="btnChamar p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-xs sm:text-sm">Chamar para 1º</button>
+                </div>
+                <div class="p-3 sm:p-4 border rounded-lg bg-gray-50">
+                    <h4 class="font-semibold mb-2 text-gray-600 text-sm sm:text-base">2º Andar <span id="indicadorPosicaoPainel2" class="text-blue-600 font-normal"></span></h4>
+                    <button data-andar-origem="2" data-andar-destino="3" class="btnChamar p-2 bg-green-500 hover:bg-green-600 text-white rounded-md mr-2 text-xs sm:text-sm">Chamar para 3º</button>
+                    <button data-andar-origem="2" data-andar-destino="1" class="btnChamar p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-xs sm:text-sm">Chamar para 1º</button>
+                </div>
+                <div class="p-3 sm:p-4 border rounded-lg bg-gray-50">
+                    <h4 class="font-semibold mb-2 text-gray-600 text-sm sm:text-base">1º Andar <span id="indicadorPosicaoPainel1" class="text-blue-600 font-normal">(Elevador Aqui)</span></h4>
+                    <button data-andar-origem="1" data-andar-destino="3" class="btnChamar p-2 bg-green-500 hover:bg-green-600 text-white rounded-md mr-2 text-xs sm:text-sm">Chamar para 3º</button>
+                    <button data-andar-origem="1" data-andar-destino="2" class="btnChamar p-2 bg-green-500 hover:bg-green-600 text-white rounded-md text-xs sm:text-sm">Chamar para 2º</button>
+                </div>
+            </div>
+        </div>
+         <div class="mt-4 sm:mt-6 p-3 sm:p-4 border rounded-lg bg-gray-50">
+            <h3 class="text-base sm:text-lg font-semibold mb-2 text-gray-600">Log de Eventos</h3>
+            <div id="logEventos" class="h-24 sm:h-32 overflow-y-auto bg-gray-800 text-white text-xs p-2 rounded-md font-mono">
+                Simulador iniciado. Aguardando eventos...<br>
+            </div>
+        </div>
+    </div>
+    <footer class="mt-8 flex items-center justify-center gap-2 text-xs text-gray-500">
+        <span>Powered by:</span>
+        <img src="logo1.png" alt="Logo 1" class="h-64 w-auto" />
+        <img src="logo2.png" alt="Logo 2" class="h-80 w-auto" />
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elementos da UI
+            const btnChaveGeral = document.getElementById('btnChaveGeral');
+            const btnParadaEmergencia = document.getElementById('btnParadaEmergencia');
+            const btnReleSobrecarga = document.getElementById('btnReleSobrecarga');
+            const statusK1 = document.getElementById('statusK1');
+            const statusK2 = document.getElementById('statusK2');
+            const statusMotor = document.getElementById('statusMotor');
+            const statusPosicao = document.getElementById('statusPosicao');
+            const statusDestino = document.getElementById('statusDestino');
+            const statusOperacao = document.getElementById('statusOperacao');
+            const elevadorVisual = document.getElementById('elevadorVisual');
+            const fc1Indicator = document.getElementById('fc1Indicator');
+            const fc2Indicator = document.getElementById('fc2Indicator');
+            const fc3Indicator = document.getElementById('fc3Indicator');
+            const logEventosDiv = document.getElementById('logEventos');
+            const btnsChamar = document.querySelectorAll('.btnChamar');
+            const indicadoresPosicaoPainel = {
+                1: document.getElementById('indicadorPosicaoPainel1'),
+                2: document.getElementById('indicadorPosicaoPainel2'),
+                3: document.getElementById('indicadorPosicaoPainel3'),
+            };
+
+            // Estado do sistema
+            const estado = {
+                chaveGeralLigada: true,
+                paradaEmergenciaAtiva: false,
+                releSobrecargaAtivado: false,
+                contatorK1Ativo: false, // Subida
+                contatorK2Ativo: false, // Descida
+                motor: 'parado', // 'parado', 'subindo', 'descendo'
+                posicaoAtual: 1, // 1, 2, 3
+                andarDestino: null, // 1, 2, 3 ou null
+                processandoChamada: false, 
+                intervaloMovimento: null
+            };
+
+            const posicoesElevadorCSS = {
+                1: '5%',  // Bottom position for 1st floor
+                2: '37.5%', // Bottom position for 2nd floor
+                3: '70%'  // Bottom position for 3rd floor
+            };
+
+            function adicionarLog(mensagem) {
+                const agora = new Date();
+                const timestamp = `${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}:${agora.getSeconds().toString().padStart(2, '0')}`;
+                logEventosDiv.innerHTML = `[${timestamp}] ${mensagem}<br>` + logEventosDiv.innerHTML;
+                const logs = logEventosDiv.getElementsByTagName('br');
+                if (logs.length > 30) {
+                    logEventosDiv.removeChild(logs[logs.length - 1]);
+                     // Remove o texto correspondente antes do <br>
+                    let lastNode = logEventosDiv.lastChild;
+                    while(lastNode && lastNode.nodeName === 'BR') {
+                        lastNode = lastNode.previousSibling;
+                    }
+                    if(lastNode && lastNode.nodeType === Node.TEXT_NODE) {
+                         logEventosDiv.removeChild(lastNode);
+                    } else if (lastNode && lastNode.nodeName === 'BR') { // If only BRs left
+                        logEventosDiv.removeChild(lastNode);
+                    }
+                }
+            }
+
+            function podeOperarGlobalmente() {
+                return estado.chaveGeralLigada && !estado.paradaEmergenciaAtiva && !estado.releSobrecargaAtivado;
+            }
+
+            function pararTudoEmergencia() {
+                estado.contatorK1Ativo = false;
+                estado.contatorK2Ativo = false;
+                // Nao resetar andarDestino e processandoChamada aqui, pois a operacao pode ser retomada
+                if (estado.intervaloMovimento) {
+                    clearInterval(estado.intervaloMovimento);
+                    estado.intervaloMovimento = null;
+                }
+                estado.motor = 'parado'; // Motor para imediatamente
+                adicionarLog("Sistema PARADO devido à condição de segurança.");
+                atualizarSistema(); // Atualiza UI e estado do motor
+            }
+            
+            function resetarChamada() {
+                estado.andarDestino = null;
+                estado.processandoChamada = false;
+            }
+
+            function atualizarSistema() {
+                const podeOperar = podeOperarGlobalmente();
+
+                if (!podeOperar) {
+                    if (estado.motor !== 'parado' || estado.contatorK1Ativo || estado.contatorK2Ativo) {
+                         pararTudoEmergencia(); // Chama a função que para o motor e loga
+                    }
+                     // Se já estava parado, apenas atualiza a UI
+                } else {
+                    // Lógica de parada pelos fins de curso ou chegada ao destino
+                    if (estado.contatorK1Ativo) { // Subindo
+                        if (estado.posicaoAtual === 3 && estado.andarDestino === 3) { // Atingiu FC3 (destino era 3)
+                            adicionarLog("FC3 (Limite Superior) atingido. Parando subida.");
+                            estado.contatorK1Ativo = false;
+                            resetarChamada();
+                        } else if (estado.posicaoAtual === 2 && estado.andarDestino === 2) { // Atingiu FC2 (destino era 2)
+                            adicionarLog("FC2 (Andar Intermediário) atingido. Parando subida.");
+                            estado.contatorK1Ativo = false;
+                            resetarChamada();
+                        } else if (estado.posicaoAtual === estado.andarDestino) { // Chegou ao destino (caso geral)
+                             adicionarLog(`Chegou ao ${estado.andarDestino}º andar subindo.`);
+                             estado.contatorK1Ativo = false;
+                             resetarChamada();
+                        }
+                    }
+
+                    if (estado.contatorK2Ativo) { // Descendo
+                        if (estado.posicaoAtual === 1 && estado.andarDestino === 1) { // Atingiu FC1 (destino era 1)
+                            adicionarLog("FC1 (Limite Inferior) atingido. Parando descida.");
+                            estado.contatorK2Ativo = false;
+                            resetarChamada();
+                        } else if (estado.posicaoAtual === 2 && estado.andarDestino === 2) { // Atingiu FC2 (destino era 2)
+                            adicionarLog("FC2 (Andar Intermediário) atingido. Parando descida.");
+                            estado.contatorK2Ativo = false;
+                            resetarChamada();
+                        } else if (estado.posicaoAtual === estado.andarDestino) { // Chegou ao destino (caso geral)
+                             adicionarLog(`Chegou ao ${estado.andarDestino}º andar descendo.`);
+                             estado.contatorK2Ativo = false;
+                             resetarChamada();
+                        }
+                    }
+                }
+                
+                // Atualizar estado do motor APÓS checar paradas por FC e segurança
+                if (podeOperar && estado.contatorK1Ativo && !estado.contatorK2Ativo) {
+                    estado.motor = 'subindo';
+                    iniciarMovimentoSeNecessario();
+                } else if (podeOperar && estado.contatorK2Ativo && !estado.contatorK1Ativo) {
+                    estado.motor = 'descendo';
+                    iniciarMovimentoSeNecessario();
+                } else {
+                    // Se não pode operar ou nenhum contator ativo, motor parado
+                    if (estado.motor !== 'parado') {
+                         adicionarLog("Motor parado.");
+                    }
+                    estado.motor = 'parado';
+                    pararMovimentoElevador();
+                    // Se parou por não ter contator ativo, mas tinha um destino, reseta.
+                    if (!estado.contatorK1Ativo && !estado.contatorK2Ativo && estado.processandoChamada) {
+                        // resetarChamada(); // Já é feito nas condições de parada por FC/destino
+                    }
+                }
+                atualizarUI();
+            }
+
+            function tratarChamada(andarChamador, andarAlvo) {
+                if (!podeOperarGlobalmente()) {
+                    adicionarLog("Não é possível processar chamada: Sistema em falha ou desligado.");
+                    return;
+                }
+                if (estado.processandoChamada && estado.andarDestino !== null) {
+                     adicionarLog(`Não é possível processar chamada: Já em rota para ${estado.andarDestino}º andar.`);
+                     return;
+                }
+                if (estado.posicaoAtual === andarAlvo) {
+                    adicionarLog(`Elevador já está no ${andarAlvo}º andar.`);
+                    return;
+                }
+
+                adicionarLog(`Chamada do ${andarChamador}º para o ${andarAlvo}º andar.`);
+                estado.andarDestino = andarAlvo;
+                estado.processandoChamada = true;
+
+                if (andarAlvo > estado.posicaoAtual) { // Precisa subir
+                    if (!estado.contatorK2Ativo) { // Intertravamento K2
+                        estado.contatorK1Ativo = true;
+                        adicionarLog("Contator K1 (Subida) ATIVADO.");
+                    } else {
+                        adicionarLog("ERRO: Tentativa de subir com K2 (Descida) ativo!");
+                        resetarChamada();
+                    }
+                } else if (andarAlvo < estado.posicaoAtual) { // Precisa descer
+                    if (!estado.contatorK1Ativo) { // Intertravamento K1
+                        estado.contatorK2Ativo = true;
+                        adicionarLog("Contator K2 (Descida) ATIVADO.");
+                    } else {
+                        adicionarLog("ERRO: Tentativa de descer com K1 (Subida) ativo!");
+                        resetarChamada();
+                    }
+                }
+                atualizarSistema();
+            }
+
+            function iniciarMovimentoSeNecessario() {
+                if (estado.intervaloMovimento || estado.motor === 'parado') return;
+
+                adicionarLog(`Iniciando movimento: ${estado.motor}`);
+                estado.intervaloMovimento = setInterval(() => {
+                    if (!podeOperarGlobalmente()) { // Checagem de segurança dentro do loop
+                        pararTudoEmergencia();
+                        return;
+                    }
+
+                    let proximaPosicao = estado.posicaoAtual;
+                    if (estado.motor === 'subindo' && estado.posicaoAtual < 3) {
+                        proximaPosicao++;
+                    } else if (estado.motor === 'descendo' && estado.posicaoAtual > 1) {
+                        proximaPosicao--;
+                    } else {
+                         // Atingiu limite físico ou não deveria estar se movendo
+                        pararMovimentoElevador();
+                        atualizarSistema(); // Reavalia o estado, pode ter sido uma parada inesperada
+                        return;
+                    }
+                    
+                    if (proximaPosicao !== estado.posicaoAtual) {
+                        estado.posicaoAtual = proximaPosicao;
+                        adicionarLog(`Elevador agora no ${estado.posicaoAtual}º andar.`);
+                    }
+                    
+                    // Se chegou ao destino ou limite, o atualizarSistema() chamado abaixo vai tratar a parada.
+                    atualizarSistema(); 
+                }, 2000); // Velocidade da simulação (tempo para mudar de andar)
+            }
+
+            function pararMovimentoElevador() {
+                if (estado.intervaloMovimento) {
+                    clearInterval(estado.intervaloMovimento);
+                    estado.intervaloMovimento = null;
+                    adicionarLog("Intervalo de movimento parado.");
+                }
+            }
+
+            function atualizarUI() {
+                // Botões de segurança
+                btnChaveGeral.textContent = `Chave Geral (${estado.chaveGeralLigada ? 'Ligada' : 'Desligada'})`;
+                btnChaveGeral.className = `w-full mb-2 p-2 rounded-md text-white text-sm sm:text-base ${estado.chaveGeralLigada ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500 hover:bg-gray-600'}`;
+                
+                btnParadaEmergencia.textContent = `Parada de Emergência (${estado.paradaEmergenciaAtiva ? 'ATIVADA' : 'Normal'})`;
+                btnParadaEmergencia.className = `w-full mb-2 p-2 rounded-md text-white text-sm sm:text-base ${estado.paradaEmergenciaAtiva ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-red-500 hover:bg-red-600'}`;
+
+                btnReleSobrecarga.textContent = `Relé Sobrecarga (${estado.releSobrecargaAtivado ? 'ATUADO' : 'Normal'})`;
+                btnReleSobrecarga.className = `w-full p-2 rounded-md text-white text-sm sm:text-base ${estado.releSobrecargaAtivado ? 'bg-red-700 hover:bg-red-800' : 'bg-orange-400 hover:bg-orange-500'}`;
+
+                // Status do sistema
+                statusK1.textContent = estado.contatorK1Ativo ? 'LIGADO' : 'DESLIGADO';
+                statusK1.className = `font-bold ${estado.contatorK1Ativo ? 'text-green-600' : 'text-red-600'}`;
+                statusK2.textContent = estado.contatorK2Ativo ? 'LIGADO' : 'DESLIGADO';
+                statusK2.className = `font-bold ${estado.contatorK2Ativo ? 'text-green-600' : 'text-red-600'}`;
+                
+                statusMotor.textContent = estado.motor.toUpperCase();
+                 if(estado.motor === 'subindo') statusMotor.className = 'font-bold text-green-500';
+                 else if(estado.motor === 'descendo') statusMotor.className = 'font-bold text-orange-500';
+                 else statusMotor.className = 'font-bold text-gray-700';
+
+                statusPosicao.textContent = `${estado.posicaoAtual}º Andar`;
+                statusDestino.textContent = estado.andarDestino ? `${estado.andarDestino}º Andar` : 'Nenhum';
+
+                if (podeOperarGlobalmente()) {
+                    statusOperacao.textContent = 'NORMAL';
+                    statusOperacao.className = 'font-bold text-green-600';
+                } else {
+                    statusOperacao.textContent = 'FALHA/PARADO';
+                    statusOperacao.className = 'font-bold text-red-600';
+                }
+
+                // Visual do elevador
+                elevadorVisual.style.bottom = posicoesElevadorCSS[estado.posicaoAtual];
+
+                // Indicadores de Fim de Curso (FC)
+                fc1Indicator.className = `absolute bottom-1 right-1 w-2 h-2 sm:w-3 sm:h-3 rounded-full border border-gray-500 ${estado.posicaoAtual === 1 ? 'bg-green-500' : 'bg-gray-400'}`;
+                fc1Indicator.title = estado.posicaoAtual === 1 ? 'FC1 (Atuado)' : 'FC1';
+                fc2Indicator.className = `absolute top-1/2 right-1 w-2 h-2 sm:w-3 sm:h-3 rounded-full transform -translate-y-1/2 border border-gray-500 ${estado.posicaoAtual === 2 ? 'bg-green-500' : 'bg-gray-400'}`;
+                fc2Indicator.title = estado.posicaoAtual === 2 ? 'FC2 (Atuado)' : 'FC2';
+                fc3Indicator.className = `absolute top-1 right-1 w-2 h-2 sm:w-3 sm:h-3 rounded-full border border-gray-500 ${estado.posicaoAtual === 3 ? 'bg-green-500' : 'bg-gray-400'}`;
+                fc3Indicator.title = estado.posicaoAtual === 3 ? 'FC3 (Atuado)' : 'FC3';
+                
+                // Indicadores de posição nos painéis de chamada
+                for (let i = 1; i <= 3; i++) {
+                    indicadoresPosicaoPainel[i].textContent = (estado.posicaoAtual === i) ? '(Elevador Aqui)' : '';
+                }
+
+                // Habilitar/desabilitar botões de chamada
+                btnsChamar.forEach(btn => {
+                    const origem = parseInt(btn.dataset.andarOrigem);
+                    const destino = parseInt(btn.dataset.andarDestino);
+                    let desabilitado = false;
+                    if (!podeOperarGlobalmente() || (estado.processandoChamada && estado.andarDestino !== null) || estado.posicaoAtual === destino) {
+                        desabilitado = true;
+                    }
+                    // Não permitir chamar do andar atual para o mesmo andar (já tratado)
+                    // Não permitir chamar se o Elevador não está no andar de origem do botão (opcional, mantendo simples por agora)
+                    
+                    btn.disabled = desabilitado;
+                    if (desabilitado) {
+                        btn.classList.add('btn-disabled');
+                    } else {
+                        btn.classList.remove('btn-disabled');
+                    }
+                });
+            }
+
+            // Event Listeners para botões de segurança
+            btnChaveGeral.addEventListener('click', () => {
+                estado.chaveGeralLigada = !estado.chaveGeralLigada;
+                adicionarLog(`Chave Geral ${estado.chaveGeralLigada ? 'LIGADA' : 'DESLIGADA'}.`);
+                if (!estado.chaveGeralLigada) pararTudoEmergencia(); // Se desligar, para tudo
+                atualizarSistema();
+            });
+
+            btnParadaEmergencia.addEventListener('click', () => {
+                estado.paradaEmergenciaAtiva = !estado.paradaEmergenciaAtiva;
+                adicionarLog(`Parada de Emergência ${estado.paradaEmergenciaAtiva ? 'ATIVADA' : 'DESATIVADA'}.`);
+                if (estado.paradaEmergenciaAtiva) pararTudoEmergencia();
+                atualizarSistema();
+            });
+
+            btnReleSobrecarga.addEventListener('click', () => {
+                estado.releSobrecargaAtivado = !estado.releSobrecargaAtivado;
+                adicionarLog(`Relé de Sobrecarga ${estado.releSobrecargaAtivado ? 'ATUADO' : 'NORMAL'}.`);
+                if (estado.releSobrecargaAtivado) pararTudoEmergencia();
+                atualizarSistema();
+            });
+
+            // Event Listeners para botões de chamada
+            btnsChamar.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const andarOrigem = parseInt(btn.dataset.andarOrigem);
+                    const andarDestino = parseInt(btn.dataset.andarDestino);
+                    // Simula que o botão só pode ser pressionado se o Elevador estiver no andar do botão
+                    if (estado.posicaoAtual === andarOrigem) {
+                         tratarChamada(andarOrigem, andarDestino);
+                    } else {
+                        adicionarLog(`Botão de chamada do ${andarOrigem}º andar pressionado, mas Elevador está no ${estado.posicaoAtual}º.`);
+                    }
+                });
+            });
+
+            // Inicialização
+            adicionarLog("Simulador de Comando Elevador de Carga iniciado.");
+            atualizarSistema(); // Para definir o estado inicial da UI
+        });
+    </script>
+</body>
+</html>
