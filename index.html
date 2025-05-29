@@ -45,7 +45,7 @@
                 <div class="text-center w-full font-semibold text-xs sm:text-sm">2º Andar</div>
                 <div class="text-center w-full font-semibold text-xs sm:text-sm">1º Andar</div>
                 <div id="elevadorVisual" class="absolute bg-blue-500 w-3/4 h-1/3 rounded flex justify-center items-center" style="bottom: 5%;">
-                    <span class="text-white text-xs sm:text-sm font-semibold">GUINCHO</span>
+                    <span class="text-white text-xs sm:text-sm font-semibold">Elevador</span>
                 </div>
                 <div id="fc3Indicator" class="absolute top-1 right-1 w-2 h-2 sm:w-3 sm:h-3 bg-gray-400 rounded-full border border-gray-500" title="FC3"></div>
                 <div id="fc2Indicator" class="absolute top-1/2 right-1 w-2 h-2 sm:w-3 sm:h-3 bg-gray-400 rounded-full transform -translate-y-1/2 border border-gray-500" title="FC2"></div>
@@ -66,7 +66,7 @@
                     <button data-andar-botao="2" data-andar-destino="1" class="btnChamar p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-xs sm:text-sm">Chamar para 1º</button>
                 </div>
                 <div class="p-3 sm:p-4 border rounded-lg bg-gray-50">
-                    <h4 class="font-semibold mb-2 text-gray-600 text-sm sm:text-base">Painel do 1º Andar <span id="indicadorPosicaoPainel1" class="text-blue-600 font-normal">(Guincho Aqui)</span></h4>
+                    <h4 class="font-semibold mb-2 text-gray-600 text-sm sm:text-base">Painel do 1º Andar <span id="indicadorPosicaoPainel1" class="text-blue-600 font-normal">(Elevador Aqui)</span></h4>
                     <button data-andar-botao="1" data-andar-destino="3" class="btnChamar p-2 bg-green-500 hover:bg-green-600 text-white rounded-md mr-2 text-xs sm:text-sm">Chamar para 3º</button>
                     <button data-andar-botao="1" data-andar-destino="2" class="btnChamar p-2 bg-green-500 hover:bg-green-600 text-white rounded-md mr-2 text-xs sm:text-sm">Chamar para 2º</button>
                     <button data-andar-botao="1" data-andar-destino="1" class="btnChamar p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-xs sm:text-sm">Chamar para 1º</button>
@@ -230,7 +230,7 @@
                      return;
                 }
                 if (estado.posicaoAtual === andarAlvo) {
-                    adicionarLog(`Guincho já está no ${andarAlvo}º andar (destino da chamada).`);
+                    adicionarLog(`Elevador já está no ${andarAlvo}º andar (destino da chamada).`);
                     return;
                 }
 
@@ -280,7 +280,7 @@
                     
                     if (proximaPosicao !== estado.posicaoAtual) {
                         estado.posicaoAtual = proximaPosicao;
-                        adicionarLog(`Guincho moveu-se para o ${estado.posicaoAtual}º andar.`);
+                        adicionarLog(`Elevador moveu-se para o ${estado.posicaoAtual}º andar.`);
                     }
                     
                     atualizarSistemaCompleto(); 
@@ -327,7 +327,7 @@
                 fc3Indicator.className = `absolute top-1 right-1 w-2 h-2 sm:w-3 sm:h-3 rounded-full border border-gray-500 ${estado.posicaoAtual === 3 ? 'bg-green-500' : 'bg-gray-400'}`;
                 
                 for (let i = 1; i <= 3; i++) {
-                    indicadoresPosicaoPainel[i].textContent = (estado.posicaoAtual === i) ? '(Guincho Aqui)' : '';
+                    indicadoresPosicaoPainel[i].textContent = (estado.posicaoAtual === i) ? '(Elevador Aqui)' : '';
                 }
 
                 btnsChamar.forEach(btn => {
